@@ -111,13 +111,15 @@ class Repository:
     # ---------------------------------------------------------
     # 3-1-Helper. 공통 그래프 인접 리스트 생성기
     # ---------------------------------------------------------
-    def _build_adjacency_list(self, undirected=True):
+    def _build_adjacency_list(self, undirected=True, reverse=False):
         """
         self.commits로부터 커밋 그래프의 인접 리스트(Adjacency List)를 생성하여 반환합니다.
         LOG, PATH 및 그래프 탐색 전반에서 코드 재사용을 높이기 위한 공통 헬퍼 메서드입니다.
         
         - undirected가 True인 경우: 부모와 자식 사이에 무방향 에지를 생성합니다. (BFS 거리 측정용)
-        - undirected가 False인 경우: 부모에서 자식 방향으로 향하는 방향성 에지를 생성합니다. (순방향 위상 정렬용)
+        - undirected가 False이고:
+          - reverse가 False인 경우: 부모에서 자식 방향으로 향하는 순방향 에지를 생성합니다. (순방향 위상 정렬용)
+          - reverse가 True인 경우: 자식에서 부모 방향으로 향하는 역방향 에지를 생성합니다. (조상 역추적용)
         """
         adj = {h: set() for h in self.commits}
         for h, node in self.commits.items():
@@ -127,7 +129,10 @@ class Repository:
                         adj[h].add(p)
                         adj[p].add(h)
                     else:
-                        adj[p].add(h)  # 부모가 자식을 가리키도록 설정 (순방향 에지)
+                        if reverse:
+                            adj[h].add(p)  # 자식이 부모를 가리키도록 설정 (역방향 에지)
+                        else:
+                            adj[p].add(h)  # 부모가 자식을 가리키도록 설정 (순방향 에지)
         return adj
 
     # ---------------------------------------------------------
@@ -371,24 +376,25 @@ class Repository:
             print(f"Unknown commit: {commit_hash}")
             return
 
+        # 공용 adjacency 빌더로부터 역방향 인접 리스트(자식 -> 부모) 생성
+        adj = self._build_adjacency_list(undirected=False, reverse=True)
+
         visited = set()
         stack = []
-        start_node = self.commits[commit_hash]
         
-        # 부모 커밋 해시들(조상)을 스택에 삽입
-        for p in start_node.parents:
-            if p in self.commits and p not in visited:
+        # 시작 노드의 부모(이웃)를 스택에 적재
+        for p in adj[commit_hash]:
+            if p not in visited:
                 visited.add(p)
                 stack.append(p)
 
         ancestor_list = []
-        # DFS 루프를 돌며 재귀적으로 과거의 모든 부모 노드를 탐색
+        # DFS 루프를 돌며 역방향 인접 리스트를 타고 조상 노드를 탐색
         while stack:
             curr = stack.pop()
             ancestor_list.append(curr)
-            curr_node = self.commits[curr]
-            for p in curr_node.parents:
-                if p in self.commits and p not in visited:
+            for p in adj[curr]:
+                if p not in visited:
                     visited.add(p)
                     stack.append(p)
 
