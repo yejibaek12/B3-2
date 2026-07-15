@@ -123,9 +123,6 @@ B3-2/
   - `path()` / `ancestors()` — 두 커밋 최단 경로·조상 조회 (`utils/graph.py` 사용)
   - `search_keyword()` / `search_author()` — 메시지 키워드·작성자 검색
 
-**[utils/__init__.py](./utils/__init__.py)** — `utils` 패키지 선언
-- 내용은 비어 있지만, Python이 `utils` 폴더를 패키지로 인식하게 해 `from utils.graph import ...` import가 가능해집니다.
-
 **[utils/sorting.py](./utils/sorting.py)** — 직접 구현한 정렬
 - 과제 제약으로 `sorted()`, `list.sort()`를 쓸 수 없어 `merge_sort`를 직접 구현했습니다.
 - `LOG --sort-by=date|author`로 날짜·작성자순 출력할 때, `ANCESTORS` 결과를 시간순으로 맞출 때 등 `repository.py`에서 호출합니다.
