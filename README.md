@@ -102,34 +102,15 @@ B3-2/
 
 **실행 흐름:** 사용자 입력 → `main.py`(파싱) → `repository.py`(명령 처리) → 필요 시 `utils/`(정렬·그래프 알고리즘). 커밋 데이터 형태는 `models.py`의 `CommitNode`로 표현합니다.
 
-### 파일별 설명
+### 파일별 역할
 
-**[main.py](./main.py)** — 콘솔 입출력·명령 분기
-- `python main.py` 실행 시 가장 먼저 돌아가는 진입점입니다.
-- `mini-git>` 프롬프트에서 한 줄씩 입력을 받고, `shlex`로 `COMMIT "hello world"`처럼 따옴표·공백을 올바르게 나눕니다.
-- 인수 개수가 맞는지, 알려진 명령인지만 확인한 뒤 `repo.commit(...)`처럼 `Repository` 메서드를 호출합니다. 커밋 생성·브랜치·검색 같은 Git 동작 자체는 이 파일에 없습니다.
-
-**[models.py](./models.py)** — 커밋 한 건의 데이터 모양
-- `CommitNode` 클래스 하나만 정의합니다. 커밋이 가져야 할 필드(해시, 메시지, 작성자, 시각, 부모 목록 등)를 담는 그릇입니다.
-- `parents`에 이전 커밋 해시를 넣어 커밋끼리 화살표로 이어지는 DAG(분기 가능한 이력 그래프)를 만듭니다.
-- 저장소 상태를 바꾸거나 명령을 처리하지 않습니다.
-
-**[repository.py](./repository.py)** — Mini Git의 핵심 엔진
-- `main.py`가 호출하는 명령별 메서드가 모여 있습니다. 저장소 상태(커밋·브랜치·HEAD·역색인)를 여기서 갱신·조회합니다.
-  - `init()` — 저장소 초기화 (`main` 브랜치·작성자 설정, 기존 데이터 리셋)
-  - `branch()` / `switch()` — 브랜치 생성·전환
-  - `commit()` — 새 커밋 생성 및 키워드·작성자 역색인 갱신
-  - `log()` — 위상 정렬 또는 날짜·작성자 기준 로그 출력
-  - `path()` / `ancestors()` — 두 커밋 최단 경로·조상 조회 (`utils/graph.py` 사용)
-  - `search_keyword()` / `search_author()` — 메시지 키워드·작성자 검색
-
-**[utils/sorting.py](./utils/sorting.py)** — 직접 구현한 정렬
-- 과제 제약으로 `sorted()`, `list.sort()`를 쓸 수 없어 `merge_sort`를 직접 구현했습니다.
-- `LOG --sort-by=date|author`로 날짜·작성자순 출력할 때, `ANCESTORS` 결과를 시간순으로 맞출 때 등 `repository.py`에서 호출합니다.
-
-**[utils/graph.py](./utils/graph.py)** — 커밋 그래프 탐색 알고리즘
-- 커밋 관계를 그래프로 보고 돌리는 함수만 모아 둔 모듈입니다. 저장소 상태는 다루지 않습니다.
-- `topological_sort` → `LOG`(부모가 자식보다 먼저 나오게), `find_shortest_path` → `PATH`(BFS 최단 경로), `find_ancestors` → `ANCESTORS`(조상 추적)에 쓰입니다.
+| 파일 | 역할 |
+|------|------|
+| [main.py](./main.py) | CLI 파싱·라우팅 |
+| [models.py](./models.py) | `CommitNode` |
+| [repository.py](./repository.py) | 저장소 상태·명령 처리 |
+| [utils/sorting.py](./utils/sorting.py) | `merge_sort` (직접 구현) |
+| [utils/graph.py](./utils/graph.py) | 위상 정렬·BFS·DFS |
 
 ---
 
